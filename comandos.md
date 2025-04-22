@@ -73,5 +73,148 @@ Este documento contiene todos los comandos utilizados en el proyecto, explicados
 | `sudo usermod -aG docker $USER` | Agrega tu usuario al grupo `docker` para que puedas usar Docker sin `sudo`. |
 
 ---
+# ☁️ Despliegue de la App Flask en AWS EC2 usando Docker
+
+Este documento explica paso a paso cómo desplegué una aplicación web desarrollada en Flask, contenida con Docker, en una instancia EC2 de AWS. Todos los comandos están explicados para facilitar el aprendizaje y la reutilización en otros proyectos DevOps.
+
+---
+
+## 🧱 Fase 1: Crear la aplicación con Flask
+
+### 1. Crear el entorno de trabajo
+
+```bash
+mkdir mi-app-devops
+cd mi-app-devops
+```
+
+### 2. Crear la aplicación `app.py`
+
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "¡Hola DevOps desde Flask!"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+```
+
+### 3. Crear el archivo de dependencias
+
+```bash
+echo "flask" > requirements.txt
+```
+
+### 4. Crear y activar entorno virtual
+
+```bash
+sudo apt install python3-venv -y         # Solo si no tienes venv instalado
+python3 -m venv venv                     # Crea un entorno virtual
+source venv/bin/activate                 # Activa el entorno
+```
+
+### 5. Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 🌳 Fase 2: Control de versiones con Git y GitHub
+
+### 1. Inicializar repositorio Git
+
+```bash
+git init
+git status
+echo "venv/" > .gitignore
+git add .
+git commit -m "Primer commit: app Flask"
+```
+
+### 2. Crear repositorio en GitHub y conectarlo
+
+```bash
+git remote add origin https://github.com/tu-usuario/mi-app-devops.git
+git branch -M main
+git push -u origin main
+```
+
+---
+
+## 🐳 Fase 3: Contenerizar la app con Docker
+
+### 1. Crear `Dockerfile`
+
+```Dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD ["python", "app.py"]
+```
+
+### 2. Construir imagen Docker
+
+```bash
+docker build -t mi-app-devops .
+```
+
+### 3. Ejecutar la app en contenedor local
+
+```bash
+docker run -p 5000:5000 mi-app-devops
+```
+
+---
+
+## ☁️ Fase 4: Despliegue en AWS EC2
+
+### 1. Crear instancia EC2 (en consola AWS)
+- AMI: Ubuntu Server 22.04 LTS
+- Tipo: t2.micro (gratis)
+- Abrir puertos: 22 (SSH), 80 (HTTP)
+- Descargar archivo `.pem`
+
+### 2. Conectarse vía SSH
+
+```bash
+chmod 400 mikey.pem
+ssh -i mikey.pem ubuntu@<IP_PUBLICA>
+```
+
+### 3. Instalar Docker en EC2
+
+```bash
+sudo apt update
+sudo apt install docker.io -y
+sudo usermod -aG docker ubuntu
+newgrp docker
+docker --version
+```
+
+### 4. Clonar y desplegar la app
+
+```bash
+git clone https://github.com/tu-usuario/mi-app-devops.git
+cd mi-app-devops
+docker build -t mi-app-devops .
+docker run -d -p 80:5000 mi-app-devops
+```
+
+### 5. Ver la app en navegador
+
+```
+http://<IP_PUBLICA>
+```
+
+---
 
 📌 Este archivo forma parte de la documentación oficial del portafolio DevOps de Mike Velázquez.
