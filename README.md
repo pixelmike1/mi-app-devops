@@ -9,8 +9,6 @@ Devuelve un "¡Hola DevOps!" en un servidor web.
 - Python + Flask
 - Git + GitHub
 - Entorno virtual (venv)
-
-## Próximamente
 - Docker
 - GitHub Actions
 - Despliegue en AWS
